@@ -1,0 +1,126 @@
+<div class="container mb-5" id="countryMenu">
+  <div class="col-md-12 text-center">
+    <span>Countries:</span>
+      <?php if($this->countryIdFilter === null): ?>
+          <span>All</span>
+      <?php else: ?>
+        <a href="<?= $this->url('home') ?>">All</a>
+      <?php endif; ?>
+    <?php foreach ($this->countries as $country): ?>
+      |
+      <?php if($this->countryIdFilter == $country->getId()): ?>
+        <span><?= $country->getName() ?></span>
+      <?php else: ?>
+        <a href="<?= $this->url('home', [], ['query' => ['countryId' => $country->getId()]]) ?>"><?= $country->getName() ?></a>
+      <?php endif; ?>
+    <?php endforeach; ?>
+  </div>
+</div>
+
+<ul class="nav nav-tabs" id="keywordsTab" role="tablist">
+  <?php foreach ($this->keywords as $keyword): ?>
+    <li class="nav-item">
+      <a class="nav-item nav-link" id="nav-<?= $keyword->getId() ?>-tab" data-toggle="tab" href="#nav-<?= $keyword->getId() ?>" role="tab" aria-controls="nav-<?= $keyword->getId() ?>">
+          <?= $keyword->getName() . ' (' . (isset($this->items[$keyword->getId()]) ? count($this->items[$keyword->getId()]) : 0 ). ')'?>
+      </a>
+    </li>
+  <?php endforeach; ?>
+</ul>
+<div class="tab-content" id="keywordsTabContent">
+  <?php foreach ($this->keywords as $keyword): ?>
+    <div class="tab-pane fade" id="nav-<?= $keyword->getId() ?>" role="tabpanel" aria-labelledby="keyword-<?= $keyword->getId() ?>-tab">
+
+      <div class="row">
+        <div class="col-lg-8 mx-auto pt-4">
+
+          <?php if (!empty($this->items[$keyword->getId()])) : ?>
+          <div class="container mb-4">
+            <div class="col-md-12 text-center">
+            <a href="#" class="btn btn-primary markAsSeen" data-keyword="<?= $keyword->getId() ?>">Mark As Seen</a>
+            </div>
+          </div>
+            <!-- List group-->
+            <ul class="list-group shadow">
+              <?php foreach ($this->items[$keyword->getId()] as $item) : ?>
+                <!-- list group item-->
+                <li class="list-group-item">
+                  <!-- Custom content-->
+                  <div class="media align-items-lg-center flex-column flex-lg-row p-3">
+                    <div class="media-body order-2 order-lg-1">
+                      <img src="<?= $item->getImage() ?>" alt="<?= $item->getTitle() ?>" width="225" class="mr-lg-5 order-1 order-lg-2 float-left">
+
+                      <h5 class="mt-0 font-weight-bold mb-2">
+                        <a href="<?= $item->getLink() ?>" target="_blank">
+                            <?= $item->getTitle() ?>
+                        </a>
+                      </h5>
+                      <div class="d-flex align-items-center justify-content-between mt-1">
+                        <h6 class="font-weight-bold my-2"><?= $item->getPrice() ?></h6>
+                      </div>
+                      <p class="font-italic text-muted mb-0 small"><?= $item->getShipping() ?></p>
+                    </div>
+                  </div>
+                  <!-- End -->
+                </li>
+                <!-- End -->
+              <?php endforeach; ?>
+            </ul>
+          <?php else : ?>
+            <div class="text-center">No items found</div>
+          <?php endif; ?>
+        </div>
+      </div>
+
+    </div>
+  <?php endforeach; ?>
+</div>
+<div id="btnTop" class="go-to-top">
+  <a href="#countryMenu" class="go-to-top-btn">
+    <i class="fa fa-arrow-up"></i>
+  </a>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#keywordsTab li:first-child a').tab('show');
+
+    $('.markAsSeen').on('click', function (e) {
+      e.preventDefault();
+
+      const urlParams = new URLSearchParams(window.location.search);
+
+      $.ajax({
+        method: 'POST',
+        url: 'application/mark-as-seen',
+        data: {
+          keywordId: $(this).data('keyword'),
+          countryId: urlParams.get('countryId')
+        },
+        success: function (response) {
+          if (response.status) {
+            $('.markAsSeen', '.tab-pane.active').parent().html('All items was marked as seen!');
+          }
+        }
+      })
+    });
+
+    var $btn = $('#btnTop');
+    var $home = $('#countryMenu');
+    var startpoint = $home.scrollTop() + $home.height();
+
+    $(window).on('scroll', function() {
+      if($(window).scrollTop() > startpoint) {
+        $btn.show();
+      } else {
+        $btn.hide();
+      }
+    });
+
+    $('.go-to-top-btn').click(function(e) {
+      e.preventDefault();
+      $([document.documentElement, document.body]).animate({
+        scrollTop: $($(this).attr('href')).offset().top
+      }, 500);
+    });
+  });
+</script>
